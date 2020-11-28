@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="ko" dir="ltr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0,maximum-scale=1.0" />
+
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>지진조기경보시스템:사용자맞춤형지진감지서비스</title>
+  <link rel="stylesheet" href="/pews/css/common.css">
+  <!--<link rel="stylesheet" href="../css/playbar.css">-->
+  <style>
+    body,
+    html {
+      background: transparent;
+    }
+
+    /* progress */
+    .progress {
+      float: right;
+      display: block;
+      width: 47%;
+      min-width: 744px;
+      padding: 0 40px;
+    }
+
+    .progress .playbar {
+      float: right;
+      position: relative;
+      width: calc(100% - 97px);
+      height: 13px;
+      background-color: #c4c7d0;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, .4);
+      border: 1px solid #000;
+      margin-top: 10px;
+    }
+
+    .playbar .pct {
+      position: absolute;
+      left: 0;
+      top: 0;
+      display: block;
+      content: '';
+      background-color: #f1686a;
+      width: 0%;
+      height: 100%;
+      border-radius: 10px;
+    }
+
+    .playbar .ctrl {
+      position: absolute;
+      right: 0;
+      top: 50%;
+      content: '';
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background-color: #f1686a;
+      font-size: 0;
+      transform: translate(50%, -50%);
+      box-shadow: 2px 2px 5px rgba(0, 0, 0, .5);
+      cursor: pointer;
+      border: 1px solid rgba(0, 0, 0, .5);
+    }
+
+    .playbar .mark {
+      position: absolute;
+      top: 0;
+      font-style: normal;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: -.1em;
+      padding-top: 15px;
+      text-shadow: 0 0 3px #000;
+    }
+
+    .playbar .mark.p1 {
+      color: #92d150;
+    }
+
+    .playbar .mark.p2 {
+      color: #35b8f0;
+    }
+
+    .playbar .mark.p3 {
+      color: #ff0000;
+    }
+
+    .playbar .mark.evt {
+      color: #ffff00;
+    }
+
+    .playbar .mark::before {
+      position: absolute;
+      left: 0;
+      top: 0;
+      content: "";
+      width: 11px;
+      height: 11px;
+      background: #fff;
+      border-radius: 50%;
+      box-shadow: 2px 2px 2px rgba(0, 0, 0, .4) inset;
+    }
+
+    .progress .step {
+      position: absolute;
+      left: 0;
+      bottom: -7px;
+      display: flex;
+      width: 100%;
+      justify-content: space-between
+    }
+
+    .progress .step li {
+      height: 0px;
+      font-size: 0;
+      border-left: 1px solid #fff;
+    }
+
+    .progress .step li:first-child,
+    .progress .step li:last-child {
+      height: 0px;
+    }
+
+    .progress .remote {
+      display: flex;
+      width: 97px;
+    }
+
+    .progress .remote button {
+      width: 33px;
+      height: 33px;
+      border: 1px solid rgba(0, 0, 0, .5);
+      border-radius: 50%;
+      background: url(/pews/img/btn_remote.gif) 54% 0 no-repeat, #fff;
+      font-size: 0;
+      margin-right: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, .4);
+    }
+
+    .progress .remote .play {
+      background-position-y: -22px;
+    }
+
+    .progress .remote .stop {
+      background-position-y: 8px;
+      margin-right: 0;
+    }
+
+    @media screen and (max-width:1300px) {
+      .progress {
+        width: 100%;
+        min-width: auto;
+        padding-left: 20px;
+      }
+    }
+
+    /* mobile */
+    @media screen and (max-width:767px) {
+      .progress {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        background-color: rgba(255, 255, 255, .3);
+        padding: 0 5px 5px;
+      }
+
+      /* .progress .playbar{width:calc(100% - 50px);} */
+      .progress .playbar {
+        height: 8px;
+      }
+
+      .playbar .ctrl {
+        width: 12px;
+        height: 12px;
+      }
+
+      .progress .remote {
+        width: 50px;
+      }
+
+      .progress .remote button {
+        width: 16px;
+        height: 16px;
+        margin-right: 5px;
+        background-size: 50%;
+      }
+
+      .progress .remote .play {
+        background-position-y: -15px;
+      }
+
+      .progress .remote .stop {
+        background-position-y: 3px;
+      }
+
+      .playbar .mark {
+        padding-top: 7px;
+      }
+
+      .playbar .mark::before {
+        width: 6px;
+        height: 6px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="bar" class="progress" style="visibility:hidden">
+    <div id="playbar" class="playbar">
+      <div id="back">
+        <div id="pct" class="pct">
+          <div id="ctrl" class="ctrl">버튼</div>
+        </div>
+      </div>
+      <!--<i class="mark evt" style="left:10%;">E</i>-->
+      <!--<i class="mark p2" style="left:12%;">P2</i>-->
+      <!--<i class="mark p3" style="left:15%;">P3</i>-->
+      <!--<i class="mark p1" style="left:25%;">P1</i>-->
+      <ul class="step">
+        <li>1</li>
+        <li>2</li>
+        <li>3</li>
+        <li>4</li>
+        <li>5</li>
+        <li>6</li>
+        <li>7</li>
+        <li>8</li>
+        <li>9</li>
+        <li>10</li>
+      </ul>
+    </div>
+    <ul class="remote">
+      <!-- <li><button type="button" class="first">처음</button> </li> -->
+      <li><button id="play" type="button" class="play">재생</button> </li>
+      <li><button id="pause" type="button" class="stop">정지</button> </li>
+      <!-- <li><button type="button" class="last">끝</button> </li> -->
+    </ul>
+  </div>
+  <script>
+
+    playbarEvt();
+
+    window.onresize = function () {
+      var pctW = pct.offsetWidth,
+        playbarW = playbar.offsetWidth,
+        calcPctW = Math.round(pctW / playbarW * 100);
+      if (calcPctW > 100) calcPctW = 100;
+      pct.style.width = calcPctW + "%";
+      playbarEvt();
+    }
+    function playbarEvt() {
+      var playbar = document.getElementById('playbar'),
+        pct = document.getElementById('pct'),
+        ctrl = document.getElementById('ctrl');
+      dragEvt(ctrl);
+      clickEvt(playbar);
+    }
+    function playbarInit() {
+      posPlaybar = {
+        loc: playbar.offsetParent.offsetLeft + playbar.offsetLeft,
+        width: playbar.offsetWidth
+      };
+      return posPlaybar;
+    }
+
+    function clickEvt(el) {
+      var pos1 = 0, pos2 = 0;
+      posPlaybar = playbarInit();
+      el.onmousedown = onMouseDown;
+      function onMouseDown(e) {
+        e = e || window.event;
+        pos2 = e.clientX;
+        pos1 = pos2 - posPlaybar.loc;
+        pct.style.width = pos1 + "px";
+      }
+    }
+
+    function dragEvt(el) {
+      var pos1 = 0, pos2 = 0;
+
+      posPlaybar = playbarInit();
+      el.onmousedown = dragStrat;
+      el.ontouchstart = dragStrat;
+
+      function dragStrat(e) {
+        e = e || window.event;
+        pos2 = e.clientX;
+        document.onmouseup = closeDragElement;
+        document.ontouchend = closeDragElement;
+        // document.ontouchcancel = closeDragElement;
+        document.onmousemove = elementDrag;
+        document.ontouchmove = elementDrag;
+      }
+      function elementDrag(e) {
+        e = e || window.event;
+
+        if (e.type === 'mousemove') {
+          pos1 = pos2 - e.clientX;
+          pos2 = e.clientX;
+        } else {
+          pos1 = pos2 - e.touches[0].clientX;
+          pos2 = e.touches[0].clientX;
+        }
+        posCalc = pct.offsetWidth - pos1;
+
+        if (posCalc >= posPlaybar.width) return;
+        pct.style.width = posCalc + "px";
+      }
+
+      function closeDragElement() {
+        document.onmouseup = null;
+        document.onmousemove = null;
+        document.ontouchend = null;
+        document.ontouchmove = null;
+      }
+    }
+
+  </script>
+</body>
+
+</html>
